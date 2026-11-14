@@ -126,8 +126,7 @@ router.get("/:id", async (req, res) => {
     return handleDatabaseError(error, res);
   }
 });
-//still not sure is really modification is required or not, but I will keep it for now.
-router.put("f/:id", async (req, res) => {
+router.put("/:id", async (req, res) => {
   const id = readingIdSchema.safeParse(req.params);
   const parsed = readingSchema.safeParse(req.body ?? {});
   if (!id.success) return validationError(res, id);
