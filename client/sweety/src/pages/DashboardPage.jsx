@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
 import DateSelector from '../components/DateSelector';
 import EmptyState from '../components/EmptyState';
 import Navbar from '../components/Navbar';
@@ -12,10 +13,44 @@ function today() {
 	return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
-function Summary({ title, report }) {
+function toLocalDate(value) {
+	const [year, month, day] = value.split('-').map(Number);
+	return new Date(year, month - 1, day);
+}
+
+function formatDate(value) {
+	return toLocalDate(value).toLocaleDateString(undefined, {
+		month: 'short',
+		day: 'numeric',
+		year: 'numeric',
+	});
+}
+
+function formatRange(from, to) {
+	return `From ${formatDate(from)} to ${formatDate(to)}`;
+}
+
+function reportPeriods(date) {
+	const selected = toLocalDate(date);
+	const monthStart = new Date(selected.getFullYear(), selected.getMonth(), 1);
+	const previousMonthStart = new Date(selected.getFullYear(), selected.getMonth() - 1, 1);
+	const previousMonthEnd = new Date(selected.getFullYear(), selected.getMonth(), 0);
+	const asValue = (value) => `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`;
+
+	return {
+		daily: `Selected date: ${formatDate(date)}`,
+		monthToDate: formatRange(asValue(monthStart), date),
+		previousMonth: formatRange(asValue(previousMonthStart), asValue(previousMonthEnd)),
+	};
+}
+
+function Summary({ title, period, report }) {
 	return (
-		<section>
-			<h2 className="mb-3 text-lg font-semibold text-slate-900">{title}</h2>
+		<section className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+			<div className="mb-4">
+				<h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+				<p className="mt-1 text-sm text-slate-600">{period}</p>
+			</div>
 			<div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
 				<StatCard label="Highest" value={report?.highest} unit="mg/dL" />
 				<StatCard label="Lowest" value={report?.lowest} unit="mg/dL" />
@@ -31,14 +66,11 @@ export default function DashboardPage() {
 	const [date, setDate] = useState(today);
 	const [reports, setReports] = useState(null);
 	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState('');
-	const [success, setSuccess] = useState('');
 	const [editing, setEditing] = useState(null);
 	const [deletingId, setDeletingId] = useState(null);
 
 	const loadReports = useCallback(async () => {
 		setLoading(true);
-		setError('');
 		try {
 			const [daily, monthToDate, previousMonth] = await Promise.all([
 				api.getDailyReport(date),
@@ -47,7 +79,7 @@ export default function DashboardPage() {
 			]);
 			setReports({ daily, monthToDate, previousMonth });
 		} catch (requestError) {
-			setError(requestError.message);
+			toast.error(requestError.message);
 		} finally {
 			setLoading(false);
 		}
@@ -61,7 +93,7 @@ export default function DashboardPage() {
 		if (editing) await api.updateReading(editing.id, reading);
 		else await api.createReading(reading);
 
-		setSuccess(editing ? 'Reading updated.' : 'Reading added.');
+		toast.success(editing ? 'Reading updated.' : 'Reading added.');
 		setEditing(null);
 		if (reading.reading_date !== date) setDate(reading.reading_date);
 		else await loadReports();
@@ -69,47 +101,46 @@ export default function DashboardPage() {
 
 	async function deleteReading(id) {
 		setDeletingId(id);
-		setError('');
 		try {
 			await api.deleteReading(id);
-			setSuccess('Reading deleted.');
+			toast.success('Reading deleted.');
 			await loadReports();
 		} catch (requestError) {
-			setError(requestError.message);
+			toast.error(requestError.message);
 		} finally {
 			setDeletingId(null);
 		}
 	}
 
 	return (
-		<div className="min-h-screen bg-slate-50">
+		<div className="min-h-screen bg-sky-50">
 			<Navbar />
-			<main className="mx-auto max-w-5xl space-y-8 px-4 py-6">
-				<div className="flex flex-wrap items-end justify-between gap-4">
+			<main className="mx-auto max-w-6xl space-y-8 px-4 py-6 sm:py-8">
+				<div className="flex flex-wrap items-end justify-between gap-4 rounded-xl bg-sky-950 p-5 sm:p-6">
 					<div>
-						<h1 className="text-2xl font-semibold text-slate-900">Glucose dashboard</h1>
-						<p className="mt-1 text-sm text-slate-600">View and manage readings by date.</p>
+						<p className="text-sm font-medium text-sky-200">Glucose tracking</p>
+						<h1 className="mt-1 text-2xl font-semibold text-white">Your glucose dashboard</h1>
+						<p className="mt-2 text-sm text-sky-100">Manage readings and compare clear daily and monthly ranges.</p>
 					</div>
 					<DateSelector value={date} onChange={setDate} />
 				</div>
-
-				{error && <p role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-700">{error}</p>}
-				{success && <p role="status" className="rounded-md bg-green-50 p-3 text-sm text-green-700">{success}</p>}
-
 				<ReadingForm key={editing?.id ?? `new-${date}`} reading={editing} date={date} onSave={saveReading} onCancel={() => setEditing(null)} />
 
 				{loading ? <p className="text-slate-600">Loading reports...</p> : <>
-					<Summary title="Daily report" report={reports?.daily} />
-					<section>
-						<h2 className="mb-3 text-lg font-semibold text-slate-900">Readings</h2>
+					<Summary title="Daily report" period={reportPeriods(date).daily} report={reports?.daily} />
+					<section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+						<div className="mb-4">
+							<h2 className="text-lg font-semibold text-slate-900">Readings for {formatDate(date)}</h2>
+							<p className="mt-1 text-sm text-slate-600">Each slot can have one reading.</p>
+						</div>
 						{reports?.daily?.readings?.length ? (
 							<ul className="space-y-3">
 								{reports.daily.readings.map((reading) => <ReadingCard key={reading.id} reading={reading} onEdit={setEditing} onDelete={deleteReading} deleting={deletingId === reading.id} />)}
 							</ul>
 						) : <EmptyState />}
 					</section>
-					<Summary title="Month to date" report={reports?.monthToDate} />
-					<Summary title="Previous month" report={reports?.previousMonth} />
+					<Summary title="Month to date" period={reportPeriods(date).monthToDate} report={reports?.monthToDate} />
+					<Summary title="Previous month" period={reportPeriods(date).previousMonth} report={reports?.previousMonth} />
 				</>}
 			</main>
 		</div>
