@@ -186,6 +186,30 @@ export const openapiSpec = {
         },
       },
     },
+    "/api/reports/daily": {
+      get: {
+        summary: "Get daily report",
+        security: [{ authCookie: [] }],
+        parameters: [{ name: "date", in: "query", required: true, schema: { type: "string", format: "date", example: "2026-11-13" } }],
+        responses: { 200: { description: "Daily summary and readings" }, 400: { description: "Invalid date" }, 401: { description: "Not authenticated" } },
+      },
+    },
+    "/api/reports/month-to-date": {
+      get: {
+        summary: "Get month-to-date report",
+        security: [{ authCookie: [] }],
+        parameters: [{ name: "date", in: "query", required: true, schema: { type: "string", format: "date", example: "2026-11-13" } }],
+        responses: { 200: { description: "Month summary through the selected date" }, 400: { description: "Invalid date" }, 401: { description: "Not authenticated" } },
+      },
+    },
+    "/api/reports/previous-month": {
+      get: {
+        summary: "Get previous-month report",
+        security: [{ authCookie: [] }],
+        parameters: [{ name: "date", in: "query", required: true, schema: { type: "string", format: "date", example: "2026-11-13" } }],
+        responses: { 200: { description: "Complete month before the selected date" }, 400: { description: "Invalid date" }, 401: { description: "Not authenticated" } },
+      },
+    },
   },
   components: {
     securitySchemes: {
