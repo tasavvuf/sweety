@@ -46,10 +46,10 @@ function reportPeriods(date) {
 
 function Summary({ title, period, report }) {
 	return (
-		<section className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+		<section className="rounded-xl border border-[#32322F] bg-[#1A1A19] p-5">
 			<div className="mb-4">
-				<h2 className="text-lg font-semibold text-slate-900">{title}</h2>
-				<p className="mt-1 text-sm text-slate-600">{period}</p>
+				<h2 className="text-lg font-semibold text-[#E4E4E2]">{title}</h2>
+				<p className="mt-1 text-sm text-[#8E8E8A]">{period}</p>
 			</div>
 			<div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
 				<StatCard label="Highest" value={report?.highest} unit="mg/dL" />
@@ -57,7 +57,7 @@ function Summary({ title, period, report }) {
 				<StatCard label="Average" value={report?.average} unit="mg/dL" />
 				<StatCard label="Readings" value={report?.total_readings} />
 			</div>
-			{report?.total_readings === 0 && <p className="mt-3 text-sm text-slate-600">No readings in this period.</p>}
+			{report?.total_readings === 0 && <p className="mt-3 text-sm text-[#8E8E8A]">No readings in this period.</p>}
 		</section>
 	);
 }
@@ -113,25 +113,25 @@ export default function DashboardPage() {
 	}
 
 	return (
-		<div className="min-h-screen bg-sky-50">
+		<div className="min-h-screen select-none bg-[#121211]">
 			<Navbar />
 			<main className="mx-auto max-w-6xl space-y-8 px-4 py-6 sm:py-8">
-				<div className="flex flex-wrap items-end justify-between gap-4 rounded-xl bg-sky-950 p-5 sm:p-6">
+				<div className="flex flex-wrap items-end justify-between gap-4 rounded-xl border border-[#32322F] bg-[#1A1A19] p-5 sm:p-6">
 					<div>
-						<p className="text-sm font-medium text-sky-200">Glucose tracking</p>
-						<h1 className="mt-1 text-2xl font-semibold text-white">Your glucose dashboard</h1>
-						<p className="mt-2 text-sm text-sky-100">Manage readings and compare clear daily and monthly ranges.</p>
+						<p className="text-sm font-medium text-[#B8C764]">Glucose tracking</p>
+						<h1 className="mt-1 text-2xl font-semibold text-[#E4E4E2]">Your glucose dashboard</h1>
+						<p className="mt-2 text-sm text-[#8E8E8A]">Manage readings and compare clear daily and monthly ranges.</p>
 					</div>
 					<DateSelector value={date} onChange={setDate} />
 				</div>
 				<ReadingForm key={editing?.id ?? `new-${date}`} reading={editing} date={date} onSave={saveReading} onCancel={() => setEditing(null)} />
 
-				{loading ? <p className="text-slate-600">Loading reports...</p> : <>
+				{loading ? <p className="text-[#8E8E8A]">Loading reports...</p> : <>
 					<Summary title="Daily report" period={reportPeriods(date).daily} report={reports?.daily} />
-					<section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+					<section className="rounded-xl border border-[#32322F] bg-[#1A1A19] p-5">
 						<div className="mb-4">
-							<h2 className="text-lg font-semibold text-slate-900">Readings for {formatDate(date)}</h2>
-							<p className="mt-1 text-sm text-slate-600">Each slot can have one reading.</p>
+							<h2 className="text-lg font-semibold text-[#E4E4E2]">Readings for {formatDate(date)}</h2>
+							<p className="mt-1 text-sm text-[#8E8E8A]">Each slot can have one reading.</p>
 						</div>
 						{reports?.daily?.readings?.length ? (
 							<ul className="space-y-3">

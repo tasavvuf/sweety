@@ -12,7 +12,14 @@ createRoot(document.getElementById('root')).render(
     <BrowserRouter>
       <AuthProvider>
         <App />
-        <ToastContainer position="top-right" autoClose={3000} />
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          theme="dark"
+          toastClassName="!select-none !bg-[#242422] !text-[#E4E4E2] !border !border-[#32322F]"
+          bodyClassName="!text-[#E4E4E2]"
+          progressClassName="!bg-[#B8C764]"
+        />
       </AuthProvider>
     </BrowserRouter>
   </StrictMode>,
