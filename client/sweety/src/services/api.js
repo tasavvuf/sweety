@@ -31,6 +31,12 @@ export const api = {
     request(`/api/reports/month-to-date?date=${date}`),
   getPreviousMonthReport: (date) =>
     request(`/api/reports/previous-month?date=${date}`),
+  getReadings: (filters) => {
+    const query = new URLSearchParams(
+      Object.entries(filters).filter(([, value]) => value !== "" && value !== undefined),
+    );
+    return request(`/api/readings?${query}`);
+  },
   createReading: (reading) =>
     request("/api/readings", { method: "POST", body: JSON.stringify(reading) }),
   updateReading: (id, reading) =>

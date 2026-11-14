@@ -114,8 +114,15 @@ export const openapiSpec = {
       get: {
         summary: "Get readings",
         security: [{ authCookie: [] }],
+        parameters: [
+          { name: "page", in: "query", schema: { type: "integer", minimum: 1, default: 1 } },
+          { name: "limit", in: "query", schema: { type: "integer", minimum: 1, maximum: 50, default: 10 } },
+          { name: "slot", in: "query", schema: { type: "string", enum: ["Morning", "After breakfast", "After lunch", "After dinner"] } },
+          { name: "from", in: "query", schema: { type: "string", format: "date" } },
+          { name: "to", in: "query", schema: { type: "string", format: "date" } },
+        ],
         responses: {
-          200: { description: "Readings for the authenticated user" },
+          200: { description: "Paginated readings for the authenticated user" },
           401: { description: "Not authenticated" },
         },
       },

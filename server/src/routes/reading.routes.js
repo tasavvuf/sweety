@@ -28,6 +28,11 @@ function todayAsCalendarDate() {
   return `${year}-${month}-${day}`;
 }
 
+function positiveInteger(value, fallback) {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
+
 const readingDateSchema = z
   .string()
   .refine(isCalendarDate, "Reading date must be a valid YYYY-MM-DD date")
@@ -43,6 +48,17 @@ const readingSchema = z.object({
 });
 
 const readingIdSchema = z.object({ id: z.uuid("Invalid reading ID") });
+const readingFiltersSchema = z.object({
+  slot: z.enum(slots).optional(),
+  from: z
+    .string()
+    .refine(isCalendarDate, "From date must be a valid YYYY-MM-DD date")
+    .optional(),
+  to: z
+    .string()
+    .refine(isCalendarDate, "To date must be a valid YYYY-MM-DD date")
+    .optional(),
+});
 
 function validationError(res, parsed) {
   return res.status(400).json({
@@ -91,15 +107,72 @@ router.post("/", async (req, res) => {
 });
 
 router.get("/", async (req, res) => {
-  try {
-    const result = await pool.query(
-      `SELECT * FROM glucose_readings
-			 WHERE user_id = $1
-			 ORDER BY reading_date DESC, created_at DESC`,
-      [req.auth.userId],
-    );
+  const filters = readingFiltersSchema.safeParse(req.query);
+  if (!filters.success) return validationError(res, filters);
 
-    return res.status(200).json({ success: true, readings: result.rows });
+  const page = positiveInteger(req.query.page, 1);
+  const limit = Math.min(50, positiveInteger(req.query.limit, 10));
+  const offset = (page - 1) * limit;
+  const conditions = ["user_id = $1"];
+  const values = [req.auth.userId];
+
+  if (filters.data.slot) {
+    values.push(filters.data.slot);
+    conditions.push(`slot = $${values.length}`);
+  }
+  if (filters.data.from) {
+    values.push(filters.data.from);
+    conditions.push(`reading_date >= $${values.length}::date`);
+  }
+  if (filters.data.to) {
+    values.push(filters.data.to);
+    conditions.push(`reading_date <= $${values.length}::date`);
+  }
+  if (
+    filters.data.from &&
+    filters.data.to &&
+    filters.data.from > filters.data.to
+  ) {
+    return res
+      .status(400)
+      .json({
+        success: false,
+        message: "From date must be before or equal to to date",
+      });
+  }
+
+  const where = conditions.join(" AND ");
+
+  try {
+    const [countResult, readingsResult] = await Promise.all([
+      pool.query(
+        `SELECT COUNT(*)::int AS total_records FROM glucose_readings WHERE ${where}`,
+        values,
+      ),
+      pool.query(
+        `SELECT * FROM glucose_readings
+         WHERE ${where}
+         ORDER BY reading_date DESC, created_at DESC, id DESC
+         LIMIT $${values.length + 1} OFFSET $${values.length + 2}`,
+        [...values, limit, offset],
+      ),
+    ]);
+
+    const totalRecords = countResult.rows[0].total_records;
+    const totalPages = Math.ceil(totalRecords / limit);
+
+    return res.status(200).json({
+      success: true,
+      readings: readingsResult.rows,
+      pagination: {
+        currentPage: page,
+        limit,
+        totalRecords,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      },
+    });
   } catch (error) {
     return handleDatabaseError(error, res);
   }
