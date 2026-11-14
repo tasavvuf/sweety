@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import DateSelector from '../components/DateSelector';
 import EmptyState from '../components/EmptyState';
@@ -7,6 +7,8 @@ import ReadingCard from '../components/ReadingCard';
 import ReadingForm from '../components/ReadingForm';
 import StatCard from '../components/StatCard';
 import { api } from '../services/api';
+
+const AnalyticsCharts = lazy(() => import('../components/AnalyticsCharts'));
 
 function today() {
 	const date = new Date();
@@ -141,6 +143,9 @@ export default function DashboardPage() {
 					</section>
 					<Summary title="Month to date" period={reportPeriods(date).monthToDate} report={reports?.monthToDate} />
 					<Summary title="Previous month" period={reportPeriods(date).previousMonth} report={reports?.previousMonth} />
+					<Suspense fallback={<p className="text-[#8E8E8A]">Loading analytics...</p>}>
+						<AnalyticsCharts date={date} />
+					</Suspense>
 				</>}
 			</main>
 		</div>

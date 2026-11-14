@@ -37,6 +37,9 @@ export const api = {
     );
     return request(`/api/readings?${query}`);
   },
+  getDailyAnalytics: (date) => request(`/api/analytics/daily?date=${date}`),
+  getMonthlyAnalytics: (date) => request(`/api/analytics/monthly?date=${date}`),
+  getDistributionAnalytics: (from, to) => request(`/api/analytics/distribution?from=${from}&to=${to}`),
   createReading: (reading) =>
     request("/api/readings", { method: "POST", body: JSON.stringify(reading) }),
   updateReading: (id, reading) =>

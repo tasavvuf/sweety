@@ -217,6 +217,33 @@ export const openapiSpec = {
         responses: { 200: { description: "Complete month before the selected date" }, 400: { description: "Invalid date" }, 401: { description: "Not authenticated" } },
       },
     },
+    "/api/analytics/daily": {
+      get: {
+        summary: "Get daily glucose trend",
+        security: [{ authCookie: [] }],
+        parameters: [{ name: "date", in: "query", required: true, schema: { type: "string", format: "date" } }],
+        responses: { 200: { description: "Readings ordered by daily slot" }, 400: { description: "Invalid date" }, 401: { description: "Not authenticated" } },
+      },
+    },
+    "/api/analytics/monthly": {
+      get: {
+        summary: "Get month-to-date daily averages",
+        security: [{ authCookie: [] }],
+        parameters: [{ name: "date", in: "query", required: true, schema: { type: "string", format: "date" } }],
+        responses: { 200: { description: "Daily aggregates for the selected month" }, 400: { description: "Invalid date" }, 401: { description: "Not authenticated" } },
+      },
+    },
+    "/api/analytics/distribution": {
+      get: {
+        summary: "Get glucose reading distribution",
+        security: [{ authCookie: [] }],
+        parameters: [
+          { name: "from", in: "query", required: true, schema: { type: "string", format: "date" } },
+          { name: "to", in: "query", required: true, schema: { type: "string", format: "date" } },
+        ],
+        responses: { 200: { description: "Server-aggregated glucose range buckets" }, 400: { description: "Invalid date range" }, 401: { description: "Not authenticated" } },
+      },
+    },
   },
   components: {
     securitySchemes: {
