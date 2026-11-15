@@ -1,0 +1,5 @@
+sweety/node_modules/
+sweety/dist/
+sweety/.oxlintrc.json
+.git
+.gitignore

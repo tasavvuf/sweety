@@ -1,7 +1,21 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 
 const slots = ['Morning', 'After breakfast', 'After lunch', 'After dinner'];
+
+function toCalendarDateString(value) {
+	if (!value) return '';
+	if (typeof value === 'string') {
+		return value.slice(0, 10);
+	}
+	if (value instanceof Date) {
+		const year = value.getFullYear();
+		const month = String(value.getMonth() + 1).padStart(2, '0');
+		const day = String(value.getDate()).padStart(2, '0');
+		return `${year}-${month}-${day}`;
+	}
+	return '';
+}
 
 function todayAsCalendarDate() {
 	const date = new Date();
@@ -14,11 +28,19 @@ function todayAsCalendarDate() {
 
 export default function ReadingForm({ reading, date, onSave, onCancel }) {
 	const [form, setForm] = useState({
-		reading_date: reading?.reading_date || date,
+		reading_date: toCalendarDateString(reading?.reading_date) || date,
 		slot: reading?.slot || 'Morning',
 		value_mg_dl: reading?.value_mg_dl ?? '',
 	});
 	const [loading, setLoading] = useState(false);
+
+	useEffect(() => {
+		setForm({
+			reading_date: toCalendarDateString(reading?.reading_date) || date,
+			slot: reading?.slot || 'Morning',
+			value_mg_dl: reading?.value_mg_dl ?? '',
+		});
+	}, [reading, date]);
 
 	function updateField(event) {
 		setForm({ ...form, [event.target.name]: event.target.value });
@@ -26,11 +48,12 @@ export default function ReadingForm({ reading, date, onSave, onCancel }) {
 
 	async function handleSubmit(event) {
 		event.preventDefault();
-		if (!form.reading_date) {
+		const cleanDate = toCalendarDateString(form.reading_date);
+		if (!cleanDate) {
 			toast.error('Select a reading date.');
 			return;
 		}
-		if (form.reading_date > todayAsCalendarDate()) {
+		if (cleanDate > todayAsCalendarDate()) {
 			toast.error('Reading date cannot be in the future.');
 			return;
 		}
@@ -59,7 +82,7 @@ export default function ReadingForm({ reading, date, onSave, onCancel }) {
 
 		setLoading(true);
 		try {
-			await onSave({ ...form, value_mg_dl: value });
+			await onSave({ ...form, reading_date: cleanDate, value_mg_dl: value });
 		} catch (requestError) {
 			toast.error(requestError.message);
 		} finally {

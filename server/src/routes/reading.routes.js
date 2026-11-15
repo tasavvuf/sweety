@@ -35,6 +35,7 @@ function positiveInteger(value, fallback) {
 
 const readingDateSchema = z
   .string()
+  .transform((val) => (typeof val === "string" && val.includes("T") ? val.slice(0, 10) : val))
   .refine(isCalendarDate, "Reading date must be a valid YYYY-MM-DD date")
   .refine(
     (value) => !isCalendarDate(value) || value <= todayAsCalendarDate(),

@@ -3,6 +3,9 @@ import './env.js';
 
 const { Pool } = pg;
 
+// Ensure PostgreSQL DATE (OID 1082) is returned as a YYYY-MM-DD string without timezone conversion
+pg.types.setTypeParser(1082, (val) => val);
+
 const isTest = process.env.NODE_ENV === 'test';
 const connectionString = isTest ? process.env.TEST_DATABASE_URL : process.env.DATABASE_URL;
 

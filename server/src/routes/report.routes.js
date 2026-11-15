@@ -17,7 +17,10 @@ function isCalendarDate(value) {
 }
 
 const dateQuerySchema = z.object({
-	date: z.string().refine(isCalendarDate, 'Date must be a valid YYYY-MM-DD date'),
+	date: z
+		.string()
+		.transform((val) => (typeof val === 'string' && val.includes('T') ? val.slice(0, 10) : val))
+		.refine(isCalendarDate, 'Date must be a valid YYYY-MM-DD date'),
 });
 
 function invalidDate(res, parsed) {

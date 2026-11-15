@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import DateSelector from '../components/DateSelector';
 import EmptyState from '../components/EmptyState';
@@ -70,6 +70,12 @@ export default function DashboardPage() {
 	const [loading, setLoading] = useState(true);
 	const [editing, setEditing] = useState(null);
 	const [deletingId, setDeletingId] = useState(null);
+	const formRef = useRef(null);
+
+	function startEdit(reading) {
+		setEditing(reading);
+		formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+	}
 
 	const loadReports = useCallback(async () => {
 		setLoading(true);
@@ -126,7 +132,9 @@ export default function DashboardPage() {
 					</div>
 					<DateSelector value={date} onChange={setDate} />
 				</div>
-				<ReadingForm key={editing?.id ?? `new-${date}`} reading={editing} date={date} onSave={saveReading} onCancel={() => setEditing(null)} />
+				<div ref={formRef}>
+					<ReadingForm key={editing?.id ?? `new-${date}`} reading={editing} date={date} onSave={saveReading} onCancel={() => setEditing(null)} />
+				</div>
 
 				{loading ? <p className="text-[#8E8E8A]">Loading reports...</p> : <>
 					<Summary title="Daily report" period={reportPeriods(date).daily} report={reports?.daily} />
@@ -137,7 +145,7 @@ export default function DashboardPage() {
 						</div>
 						{reports?.daily?.readings?.length ? (
 							<ul className="space-y-3">
-								{reports.daily.readings.map((reading) => <ReadingCard key={reading.id} reading={reading} onEdit={setEditing} onDelete={deleteReading} deleting={deletingId === reading.id} />)}
+								{reports.daily.readings.map((reading) => <ReadingCard key={reading.id} reading={reading} onEdit={startEdit} onDelete={deleteReading} deleting={deletingId === reading.id} />)}
 							</ul>
 						) : <EmptyState />}
 					</section>
