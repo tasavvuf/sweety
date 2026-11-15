@@ -244,6 +244,71 @@ export const openapiSpec = {
         responses: { 200: { description: "Server-aggregated glucose range buckets" }, 400: { description: "Invalid date range" }, 401: { description: "Not authenticated" } },
       },
     },
+    "/api/doctor/patients/request": {
+      post: {
+        summary: "Request patient access as a doctor",
+        security: [{ authCookie: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["patient_id"],
+                properties: { patient_id: { type: "string", format: "uuid" } },
+              },
+            },
+          },
+        },
+        responses: { 201: { description: "Pending access request created" }, 403: { description: "Doctor access required" }, 404: { description: "Patient not found" }, 409: { description: "Request already exists" } },
+      },
+    },
+    "/api/doctor/patients": {
+      get: {
+        summary: "Get a doctor's patient access requests",
+        security: [{ authCookie: [] }],
+        responses: { 200: { description: "Patients and request statuses" }, 403: { description: "Doctor access required" } },
+      },
+    },
+    "/api/doctor/patients/{id}/accept": {
+      patch: {
+        summary: "Accept a pending doctor access request as the patient",
+        security: [{ authCookie: [] }],
+        parameters: [{ name: "id", in: "path", required: true, description: "Relationship request ID", schema: { type: "string", format: "uuid" } }],
+        responses: { 200: { description: "Access request accepted" }, 403: { description: "Patient access required" }, 404: { description: "Pending request not found" } },
+      },
+    },
+    "/api/doctor/patients/{id}/reject": {
+      patch: {
+        summary: "Reject a pending doctor access request as the patient",
+        security: [{ authCookie: [] }],
+        parameters: [{ name: "id", in: "path", required: true, description: "Relationship request ID", schema: { type: "string", format: "uuid" } }],
+        responses: { 200: { description: "Access request rejected" }, 403: { description: "Patient access required" }, 404: { description: "Pending request not found" } },
+      },
+    },
+    "/api/doctor/patients/{id}/readings": {
+      get: {
+        summary: "Get paginated readings for an accepted patient relationship",
+        security: [{ authCookie: [] }],
+        parameters: [
+          { name: "id", in: "path", required: true, description: "Patient ID", schema: { type: "string", format: "uuid" } },
+          { name: "page", in: "query", schema: { type: "integer", minimum: 1, default: 1 } },
+          { name: "limit", in: "query", schema: { type: "integer", minimum: 1, maximum: 50, default: 10 } },
+        ],
+        responses: { 200: { description: "Patient readings" }, 403: { description: "Accepted patient relationship required" } },
+      },
+    },
+    "/api/doctor/patients/{id}/reports": {
+      get: {
+        summary: "Get reports for an accepted patient relationship",
+        security: [{ authCookie: [] }],
+        parameters: [
+          { name: "id", in: "path", required: true, description: "Patient ID", schema: { type: "string", format: "uuid" } },
+          { name: "date", in: "query", required: true, schema: { type: "string", format: "date" } },
+        ],
+        responses: { 200: { description: "Daily, month-to-date, and previous-month reports" }, 403: { description: "Accepted patient relationship required" } },
+      },
+    },
   },
   components: {
     securitySchemes: {

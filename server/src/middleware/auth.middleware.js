@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { pool } from '../config/db.js';
 
 function getAuthCookie(header) {
 	for (const part of header?.split(';') ?? []) {
@@ -36,3 +37,24 @@ export function requireAuth(req, res, next) {
 		return res.status(401).json({ message: 'Invalid or expired token' });
 	}
 }
+
+function requireRole(role) {
+	return async (req, res, next) => {
+		try {
+			const result = await pool.query('SELECT id, role FROM app_users WHERE id = $1', [req.auth.userId]);
+			const user = result.rows[0];
+
+			if (!user || user.role !== role) {
+				return res.status(403).json({ message: `${role[0].toUpperCase()}${role.slice(1)} access required` });
+			}
+
+			req.currentUser = user;
+			return next();
+		} catch (error) {
+			return next(error);
+		}
+	};
+}
+
+export const requireDoctor = requireRole('doctor');
+export const requirePatient = requireRole('patient');

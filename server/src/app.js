@@ -3,6 +3,7 @@ import swaggerUi from 'swagger-ui-express';
 import { openapiSpec } from './config/openapi.js';
 import authRoutes from './routes/auth.routes.js';
 import analyticsRoutes from './routes/analytics.routes.js';
+import doctorRoutes from './routes/doctor.routes.js';
 import healthRoutes from './routes/health.routes.js';
 import readingRoutes from './routes/reading.routes.js';
 import reportRoutes from './routes/report.routes.js';
@@ -17,6 +18,7 @@ app.use('/health', healthRoutes);
 app.use('/api/readings', readingRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/doctor', doctorRoutes);
 app.use('/api/auth', authRoutes);
 
 export default app;

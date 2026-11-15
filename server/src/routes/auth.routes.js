@@ -66,7 +66,7 @@ router.post('/reg', async (req, res, next) => {
 		const result = await pool.query(
 			`INSERT INTO app_users (name, email, password_hash)
 			 VALUES ($1, $2, $3)
-			 RETURNING id, name, email, created_at`,
+			 RETURNING id, name, email, role, created_at`,
 			[name, email, passwordHash],
 		);
 
@@ -93,7 +93,7 @@ router.post('/login', async (req, res, next) => {
 
 	try {
 		const result = await pool.query(
-			`SELECT id, name, email, password_hash, created_at
+			`SELECT id, name, email, role, password_hash, created_at
 			 FROM app_users
 			 WHERE LOWER(email) = LOWER($1)
 			 LIMIT 1`,
@@ -116,7 +116,7 @@ router.post('/login', async (req, res, next) => {
 router.get('/me', requireAuth, async (req, res, next) => {
 	try {
 		const result = await pool.query(
-			`SELECT id, name, email, created_at
+			`SELECT id, name, email, role, created_at
 			 FROM app_users
 			 WHERE id = $1`,
 			[req.auth.userId],
