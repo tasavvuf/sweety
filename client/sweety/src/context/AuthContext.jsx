@@ -14,8 +14,14 @@ export function AuthProvider({ children }) {
 			.finally(() => setLoading(false));
 	}, []);
 
-	async function login(details) {
+	async function login(details, expectedRole) {
 		const response = await api.login(details);
+		if (expectedRole && response.user.role !== expectedRole) {
+			await api.logout().catch(() => {});
+			throw new Error(expectedRole === 'doctor'
+				? 'This account is not a doctor account. Choose patient sign-in.'
+				: 'This account is not a patient account. Choose doctor sign-in.');
+		}
 		setUser(response.user);
 	}
 

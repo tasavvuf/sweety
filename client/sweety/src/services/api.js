@@ -40,6 +40,11 @@ export const api = {
   getDailyAnalytics: (date) => request(`/api/analytics/daily?date=${date}`),
   getMonthlyAnalytics: (date) => request(`/api/analytics/monthly?date=${date}`),
   getDistributionAnalytics: (from, to) => request(`/api/analytics/distribution?from=${from}&to=${to}`),
+  getDoctorPatients: () => request("/api/doctor/patients"),
+  getDoctorPatientReports: (patientId, date) =>
+    request(`/api/doctor/patients/${encodeURIComponent(patientId)}/reports?date=${encodeURIComponent(date)}`),
+  getDoctorPatientReadings: (patientId, page = 1, limit = 50) =>
+    request(`/api/doctor/patients/${encodeURIComponent(patientId)}/readings?page=${page}&limit=${limit}`),
   createReading: (reading) =>
     request("/api/readings", { method: "POST", body: JSON.stringify(reading) }),
   updateReading: (id, reading) =>

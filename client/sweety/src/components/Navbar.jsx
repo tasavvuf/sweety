@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 export default function Navbar() {
   const { user, logout } = useAuth();
   const [loading, setLoading] = useState(false);
+  const isDoctor = user?.role === "doctor";
 
   async function handleLogout() {
     setLoading(true);
@@ -24,8 +25,12 @@ export default function Navbar() {
         </div>
         <div className="flex items-center gap-3 text-sm font-medium">
           <nav className="flex gap-3" aria-label="Main navigation">
-            <NavLink className={({ isActive }) => isActive ? "text-[#B8C764]" : "text-[#8E8E8A] hover:text-[#E4E4E2]"} to="/dashboard">Dashboard</NavLink>
-            <NavLink className={({ isActive }) => isActive ? "text-[#B8C764]" : "text-[#8E8E8A] hover:text-[#E4E4E2]"} to="/history">History</NavLink>
+            {isDoctor ? (
+              <NavLink className={({ isActive }) => isActive ? "text-[#B8C764]" : "text-[#8E8E8A] hover:text-[#E4E4E2]"} to="/doctor">Patient reports</NavLink>
+            ) : <>
+              <NavLink className={({ isActive }) => isActive ? "text-[#B8C764]" : "text-[#8E8E8A] hover:text-[#E4E4E2]"} to="/dashboard">Dashboard</NavLink>
+              <NavLink className={({ isActive }) => isActive ? "text-[#B8C764]" : "text-[#8E8E8A] hover:text-[#E4E4E2]"} to="/history">History</NavLink>
+            </>}
           </nav>
           <button
             onClick={handleLogout}
