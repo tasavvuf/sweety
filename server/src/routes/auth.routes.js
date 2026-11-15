@@ -6,13 +6,21 @@ import { pool } from '../config/db.js';
 import { requireAuth } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
-const authCookieOptions = {
-	httpOnly: true,
-	secure: process.env.NODE_ENV === 'production',
-	sameSite: 'lax',
-	path: '/',
-	maxAge: 24 * 60 * 60 * 1000,
-};
+
+function getAuthCookieOptions(req) {
+	const isHttps =
+		process.env.NODE_ENV === 'production' ||
+		Boolean(req?.secure) ||
+		req?.headers?.['x-forwarded-proto'] === 'https';
+
+	return {
+		httpOnly: true,
+		secure: isHttps,
+		sameSite: isHttps ? 'none' : 'lax',
+		path: '/',
+		maxAge: 24 * 60 * 60 * 1000,
+	};
+}
 
 const passwordSchema = z.string().min(8).refine(
 	(password) => Buffer.byteLength(password, 'utf8') <= 72,
@@ -71,7 +79,7 @@ router.post('/reg', async (req, res, next) => {
 		);
 
 		const user = result.rows[0];
-		res.cookie('auth_token', createToken(user.id), authCookieOptions);
+		res.cookie('auth_token', createToken(user.id), getAuthCookieOptions(req));
 		return res.status(201).json({ message: 'Account created successfully', user });
 	} catch (error) {
 		if (error.code === '23505') {
@@ -106,7 +114,7 @@ router.post('/login', async (req, res, next) => {
 		}
 
 		const { password_hash: passwordHash, ...safeUser } = user;
-		res.cookie('auth_token', createToken(user.id), authCookieOptions);
+		res.cookie('auth_token', createToken(user.id), getAuthCookieOptions(req));
 		return res.status(200).json({ message: 'Logged in successfully', user: safeUser });
 	} catch (error) {
 		return next(error);
@@ -133,7 +141,7 @@ router.get('/me', requireAuth, async (req, res, next) => {
 });
 
 router.post('/logout', requireAuth, (req, res) => {
-	const { maxAge, ...clearOptions } = authCookieOptions;
+	const { maxAge, ...clearOptions } = getAuthCookieOptions(req);
 	res.clearCookie('auth_token', clearOptions);
 	res.status(200).json({ message: 'Logged out successfully' });
 });

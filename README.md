@@ -255,7 +255,8 @@ cp server/.env.example server/.env
 | `PORT` | Optional | Port for the Express server (defaults to 3000). | `3000` |
 | `DATABASE_URL` | **Yes** | PostgreSQL connection string (Supabase transaction pooler or direct URI). | `postgresql://postgres:password@aws-0-region.pooler.supabase.com:5432/postgres` |
 | `JWT_SECRET` | **Yes** | Cryptographic secret key used to sign and verify session JWTs (minimum 32 characters). | `replace_with_a_secure_random_secret_at_least_32_characters_long` |
-| `NODE_ENV` | Optional | Runtime mode (`development`, `production`, or `test`). In `production`, auth cookies require HTTPS (`secure: true`). | `development` |
+| `NODE_ENV` | Optional | Runtime mode (`development`, `production`, or `test`). In `production`, auth cookies require HTTPS (`secure: true`, `sameSite: 'none'`). | `production` |
+| `CLIENT_URL` | Optional | Allowed frontend origins for CORS (comma-separated). | `https://sweety-one.vercel.app,http://localhost:5173` |
 
 ### Frontend Configuration (`client/sweety/`)
 
